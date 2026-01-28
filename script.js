@@ -206,8 +206,11 @@ function openExplanationInTab(fullExplanation, qNum) {
 
     const win = window.open("", "_blank");
     win.document.write(`
-        <html>
+        <!DOCTYPE html>
+        <html lang="en">
         <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
             <title>Q${qNum} Explanation</title>
             <style>
                 :root {
@@ -249,6 +252,7 @@ function openExplanationInTab(fullExplanation, qNum) {
                     padding: 40px; 
                     line-height: 1.8; 
                     transition: background 0.3s, color 0.3s;
+                    margin: 0;
                 }
                 .header-row {
                     display: flex;
@@ -335,22 +339,47 @@ function openExplanationInTab(fullExplanation, qNum) {
                 }
                 .close-btn:hover { background: var(--btn-hover); }
 
-                /* LANDSCAPE MOBILE OPTIMIZATIONS FOR POPUP */
+                /* --- LANDSCAPE MOBILE FIXES --- */
                 @media screen and (orientation: landscape) and (max-height: 500px) {
-                    body { padding: 10px 20px; }
-                    .container { padding: 15px 20px; margin: 0; max-width: 100%; }
-                    h1 { font-size: 1.2rem; }
-                    .header-row { margin-bottom: 10px; padding-bottom: 5px; }
-                    p { font-size: 1rem; line-height: 1.4; margin-bottom: 10px; }
-                    .tips-box { margin-top: 15px; padding: 10px; }
-                    .close-btn { margin-top: 15px; padding: 8px; font-size: 14px; }
+                    body { 
+                        padding: 10px; 
+                    }
+                    .container { 
+                        padding: 15px 20px; 
+                        margin: 0; 
+                        width: 100%;
+                        max-width: 100%;
+                        border-radius: 0;
+                        box-shadow: none;
+                    }
+                    h1 { 
+                        font-size: 1.3rem; /* Slightly smaller header */
+                    }
+                    .header-row { 
+                        margin-bottom: 15px; 
+                        padding-bottom: 8px; 
+                    }
+                    p { 
+                        font-size: 1.15rem; /* Large enough to read without zoom */
+                        line-height: 1.5; 
+                        margin-bottom: 12px; 
+                    }
+                    .tips-box { 
+                        margin-top: 20px; 
+                        padding: 15px; 
+                    }
+                    .close-btn { 
+                        margin-top: 20px; 
+                        padding: 12px; 
+                        font-size: 1rem; 
+                    }
                 }
             </style>
         </head>
         <body data-theme="dark">
             <div class="container">
                 <div class="header-row">
-                    <h1>Question ${qNum} - Detailed Analysis</h1>
+                    <h1>Question ${qNum} - Analysis</h1>
                     <button class="theme-toggle" onclick="toggleTheme()">🌗 Theme</button>
                 </div>
                 
