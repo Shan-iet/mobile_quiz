@@ -213,7 +213,7 @@ function openExplanationInTab(fullExplanation, qNum) {
             <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
             <title>Q${qNum} Explanation</title>
             <style>
-                * { box-sizing: border-box; } /* GLOBAL FIX HERE */
+                * { box-sizing: border-box; }
                 
                 :root {
                     --bg-color: #f8f9fa;
@@ -277,7 +277,7 @@ function openExplanationInTab(fullExplanation, qNum) {
                 }
 
                 .container { 
-                    max-width: 850px; 
+                    max-width: 720px; /* BEAUTIFICATION: Reduced from 850px for better readability */
                     margin: 0 auto; 
                     background: var(--card-bg);
                     padding: 50px;       
@@ -290,10 +290,7 @@ function openExplanationInTab(fullExplanation, qNum) {
                     text-align: justify; 
                 }
                 
-                .highlight-term { 
-                    font-weight: bold; 
-                    color: var(--highlight-term); 
-                }
+                .highlight-term { font-weight: bold; color: var(--highlight-term); }
                 .highlight-statement { 
                     font-weight: bold; 
                     color: var(--highlight-stmt-text); 
@@ -302,11 +299,7 @@ function openExplanationInTab(fullExplanation, qNum) {
                     border-radius: 4px;
                     display: inline-block; 
                 }
-                .definition-header {
-                    font-weight: 400;
-                    color: var(--highlight-def);
-                    display: inline-block;
-                }
+                .definition-header { font-weight: 400; color: var(--highlight-def); display: inline-block; }
 
                 .tips-box {
                     margin-top: 40px;
@@ -341,41 +334,24 @@ function openExplanationInTab(fullExplanation, qNum) {
                 }
                 .close-btn:hover { background: var(--btn-hover); }
 
-                /* --- LANDSCAPE MOBILE FIXES --- */
+                /* --- LANDSCAPE MOBILE ADJUSTMENTS --- */
                 @media screen and (orientation: landscape) and (max-height: 500px) {
                     body { 
                         padding: 0; 
                     }
                     .container { 
-                        padding: 10px 15px; 
-                        margin: 0; 
-                        width: 100%;
-                        max-width: 100%;
+                        /* Make it narrower than 100% so it floats nicely in the center */
+                        width: 90%; 
+                        max-width: 720px;
+                        padding: 15px 25px; 
+                        margin: 0 auto; 
                         border-radius: 0;
                         box-shadow: none;
                         min-height: 100vh;
                     }
-                    h1 { 
-                        font-size: 1.2rem; 
-                    }
-                    .header-row { 
-                        margin-bottom: 10px; 
-                        padding-bottom: 5px; 
-                    }
-                    p { 
-                        font-size: 1.1rem; 
-                        line-height: 1.5; 
-                        margin-bottom: 10px; 
-                    }
-                    .tips-box { 
-                        margin-top: 15px; 
-                        padding: 10px; 
-                    }
-                    .close-btn { 
-                        margin-top: 15px; 
-                        padding: 10px; 
-                        font-size: 1rem; 
-                    }
+                    h1 { font-size: 1.3rem; }
+                    .header-row { margin-bottom: 15px; }
+                    p { font-size: 1.15rem; }
                 }
             </style>
         </head>

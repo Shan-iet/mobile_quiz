@@ -1,4 +1,4 @@
-/* --- GLOBAL RESET (Fixes Scroll Issues) --- */
+/* --- GLOBAL RESET --- */
 * { box-sizing: border-box; }
 
 :root {
@@ -18,13 +18,13 @@ body {
   background: var(--bg); 
   color: var(--text);
   line-height: 1.5;
-  overflow-x: hidden; /* Prevent accidental horizontal scroll */
+  overflow-x: hidden;
 }
 
 /* ... Layout ... */
 .app-container { 
   display: grid; 
-  grid-template-columns: 1fr 240px; 
+  grid-template-columns: 1fr 240px; /* Sidebar stays on RIGHT */
   gap: 20px; 
   max-width: 1200px; 
   margin: 30px auto; 
@@ -48,13 +48,13 @@ h1, h2, h3, h4 { margin-top: 0; }
 .hero-title { font-size: 1.8rem; margin-bottom: 20px; color: white; }
 .center { text-align: center; }
 
-/* ... Header & Timers ... */
+/* ... Header ... */
 .quiz-header { 
   display: flex; 
   justify-content: space-between; 
   align-items: center; 
   margin-bottom: 15px; 
-  flex-wrap: wrap; /* Safety wrap */
+  flex-wrap: wrap; 
   gap: 10px;
 }
 
@@ -344,132 +344,70 @@ input[type="file"] { display: none; }
 .text-danger { color: var(--danger) !important; }
 
 /* =========================================
-   MOBILE PORTRAIT (Standard Stacked)
+   MEDIA QUERIES
    ========================================= */
-@media (max-width: 850px) {
+
+/* Mobile Portrait: Stack everything */
+@media (max-width: 768px) and (orientation: portrait) {
   .app-container { 
     grid-template-columns: 1fr; 
     padding: 0 15px;
     margin: 15px auto;
   }
-  
   .sidebar { 
     position: static; 
     max-height: none; 
-    width: 100%; /* Full width in portrait */
-    flex-direction: column; /* Vertical stack like normal */
+    width: 100%; 
   }
-
-  .sidebar-section {
-    width: 100%;
-  }
-
-  .sidebar-list {
-    max-height: 150px; /* Limit height in portrait so it doesn't take up whole screen */
-    overflow-y: auto;
-  }
+  .sidebar-list { max-height: 150px; }
 }
 
-@media (max-width: 600px) {
-  .action-grid { grid-template-columns: 1fr; }
-  .controls { flex-direction: column; gap: 15px; }
-  .controls > button { width: 100%; }
-  .next-group { width: 100%; }
-  .next-group > button { flex: 1; }
-  .quiz-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-  .header-right { width: 100%; justify-content: space-between; }
-}
-
-/* =========================================
-   MOBILE LANDSCAPE (Optimized Strip)
-   ========================================= */
+/* Mobile Landscape: KEEP Sidebar on Right, but Compact Everything */
 @media screen and (orientation: landscape) and (max-height: 600px) {
-  body {
-      padding-bottom: 20px; /* Slight buffer */
-  }
+  body { padding-bottom: 10px; }
 
   .app-container {
     max-width: 100%;
     margin: 5px auto;
-    padding: 0 10px; /* Tighter padding */
-    gap: 10px;
-    grid-template-columns: 1fr; /* Stacked layout */
+    padding: 0 10px;
+    gap: 12px;
+    /* Maintain Sidebar on Right, but make it smaller (200px) */
+    grid-template-columns: 1fr 200px;
   }
 
-  /* Compact Card */
-  .card {
-    padding: 10px 15px;
-    margin-bottom: 5px;
-  }
+  .card { padding: 10px 15px; margin-bottom: 0; }
 
-  /* Shrink Header */
+  /* Header Shrink */
   .hero-title { font-size: 1.2rem; margin-bottom: 5px; }
-  .quiz-header { margin-bottom: 5px; flex-direction: row; align-items: center; }
-  .header-right { width: auto; }
+  .quiz-header { margin-bottom: 5px; }
   .badge, .timer-pill { font-size: 11px; padding: 2px 6px; }
-  .total-time { font-size: 11px; }
 
-  .progress-bar-bg { margin: 5px 0 10px 0; height: 4px; }
-
-  /* Scrollable Question Area */
+  /* Question Area Scroll */
   #question { 
     font-size: 1.1rem; 
     margin-bottom: 8px;
-    line-height: 1.3;
-    max-height: 110px; 
+    max-height: 100px; 
     overflow-y: auto;
     padding-right: 5px;
   }
-  
+
   /* Compact Options */
-  .option-btn { 
-    padding: 6px 10px; 
-    font-size: 13px; 
-    min-height: auto;
-  }
   .options { gap: 6px; }
+  .option-btn { padding: 6px 10px; font-size: 13px; }
 
   /* Compact Controls */
-  .controls { margin-top: 10px; padding-top: 8px; flex-direction: row; }
-  .controls > button { width: auto; }
+  .controls { margin-top: 10px; padding-top: 8px; }
   .btn { padding: 6px 12px; font-size: 12px; }
 
-  /* SIDEBAR: Horizontal Strip (ONLY in Landscape) */
+  /* Compact Sidebar */
   .sidebar {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    overflow-x: auto; /* Horizontal scroll */
-    max-height: 60px;
-    padding: 5px 10px;
-    align-items: center;
-    width: 100%;
+    padding: 10px;
+    gap: 10px;
+    top: 5px;
+    max-height: 95vh;
+    overflow-y: auto;
   }
-  
-  .sidebar-section {
-    flex: 0 0 auto;
-    flex-direction: row;
-    align-items: center;
-    min-width: auto;
-    margin-right: 15px;
-    width: auto;
-  }
-  
-  .sidebar-header-row {
-    border-bottom: none;
-    margin-bottom: 0;
-    margin-right: 8px;
-    padding-bottom: 0;
-  }
-  
-  .sidebar-list {
-    display: flex;
-    flex-direction: row;
-    max-height: none;
-    overflow-y: hidden;
-    overflow-x: auto;
-    padding-right: 0;
-    gap: 5px;
-  }
-  
-  .sidebar-title { font-size: 10px; white-space: nowrap; }
+  .sidebar-title { font-size: 10px; }
+  .sidebar-list { max-height: none; gap: 4px; }
+  .flag-pill { font-size: 10px; padding: 4px 2px; }
 }
