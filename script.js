@@ -213,6 +213,8 @@ function openExplanationInTab(fullExplanation, qNum) {
             <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
             <title>Q${qNum} Explanation</title>
             <style>
+                * { box-sizing: border-box; } /* GLOBAL FIX HERE */
+                
                 :root {
                     --bg-color: #f8f9fa;
                     --text-color: #2c3e50;
@@ -342,35 +344,36 @@ function openExplanationInTab(fullExplanation, qNum) {
                 /* --- LANDSCAPE MOBILE FIXES --- */
                 @media screen and (orientation: landscape) and (max-height: 500px) {
                     body { 
-                        padding: 10px; 
+                        padding: 0; 
                     }
                     .container { 
-                        padding: 15px 20px; 
+                        padding: 10px 15px; 
                         margin: 0; 
                         width: 100%;
                         max-width: 100%;
                         border-radius: 0;
                         box-shadow: none;
+                        min-height: 100vh;
                     }
                     h1 { 
-                        font-size: 1.3rem; /* Slightly smaller header */
+                        font-size: 1.2rem; 
                     }
                     .header-row { 
-                        margin-bottom: 15px; 
-                        padding-bottom: 8px; 
+                        margin-bottom: 10px; 
+                        padding-bottom: 5px; 
                     }
                     p { 
-                        font-size: 1.15rem; /* Large enough to read without zoom */
+                        font-size: 1.1rem; 
                         line-height: 1.5; 
-                        margin-bottom: 12px; 
+                        margin-bottom: 10px; 
                     }
                     .tips-box { 
-                        margin-top: 20px; 
-                        padding: 15px; 
+                        margin-top: 15px; 
+                        padding: 10px; 
                     }
                     .close-btn { 
-                        margin-top: 20px; 
-                        padding: 12px; 
+                        margin-top: 15px; 
+                        padding: 10px; 
                         font-size: 1rem; 
                     }
                 }
