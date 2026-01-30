@@ -183,63 +183,67 @@ function processTextSmartly(text) {
     return paragraphs.map(p => `<p>${smartHighlight(p)}</p>`).join('');
 }
 
-// --- NEW SMART QUESTION FORMATTER ---
+// --- NEW ROBUST QUESTION FORMATTER ---
 function formatQuestionText(text) {
     if (!text) return "";
     let formatted = text;
 
-    // 1. MATCH THE FOLLOWING TABLE GENERATOR
-    // Detects "List-I" and "List-II" logic
+    // 1. MATCH THE FOLLOWING TABLE GENERATOR (Robust)
+    // Detect "List-I" and "List-II"
     if (/(List\s*[-_]?\s*I).*(List\s*[-_]?\s*II)/is.test(formatted)) {
         
-        let headerRow = "";
-        // Try to capture custom headers e.g., "List-I (Events)"
+        let headerHtml = "";
+        let tableRowsHtml = "";
+        
+        // Extract Headers
         const headerMatch = formatted.match(/(List\s*[-_]?\s*I[^:]*).*(List\s*[-_]?\s*II[^:]*)/i);
-        if(headerMatch) {
-             headerRow = `<div class="match-header">
-                            <div>${headerMatch[1]}</div>
-                            <div>${headerMatch[2]}</div>
-                          </div>`;
+        if (headerMatch) {
+            // Clean headers (remove parens if messy)
+            let h1 = headerMatch[1].replace(/[:\n]/g, '').trim();
+            let h2 = headerMatch[2].replace(/[:\n]/g, '').trim();
+            headerHtml = `<div class="match-header"><div>${h1}</div><div>${h2}</div></div>`;
         }
 
-        // Logic to pairs: A. content ... 1. content
-        let foundMatch = false;
-        const pairRegex = /([A-D])\s*[\.\-]\s*([^1-4\n]+)\s*([1-4])\s*[\.\-]\s*([^\n]+)/g;
+        // Logic: Find A. item ... 1. match
+        // We use a regex that captures the letter, content, number, content
+        // We iterate and BUILD a separate table string, then REMOVE the matches from the main text
+        const pairRegex = /([A-D])\s*[\.\-]\s*([^1-4\n]+?)\s+([1-4])\s*[\.\-]\s*([^\n]+)/g;
         
+        let hasPairs = false;
+        
+        // Replace pairs with empty string in main text, but collect them for the table
         formatted = formatted.replace(pairRegex, (match, l, lContent, n, nContent) => {
-            foundMatch = true;
-            return `<div class="match-row">
-                        <div class="match-col"><strong>${l}.</strong> ${lContent.trim()}</div>
-                        <div class="match-col"><strong>${n}.</strong> ${nContent.trim()}</div>
-                    </div>`;
+            hasPairs = true;
+            tableRowsHtml += `<div class="match-row">
+                                <div class="match-col"><strong>${l}.</strong> ${lContent.trim()}</div>
+                                <div class="match-col"><strong>${n}.</strong> ${nContent.trim()}</div>
+                              </div>`;
+            return ""; // Remove from main text
         });
 
-        if (foundMatch) {
-            // Remove the raw headers from text if they exist to avoid duplication
-            formatted = formatted.replace(/(List\s*[-_]?\s*I.*List\s*[-_]?\s*II)/i, '');
-            // Wrap in container
-            formatted = `<div class="match-grid">${headerRow}${formatted}</div>`;
+        // If pairs found, append the table to the end (or where List headers were)
+        if (hasPairs) {
+            // Clean up left over List headers from the text so they don't duplicate
+            formatted = formatted.replace(/(List\s*[-_]?\s*I.*List\s*[-_]?\s*II.*?:?)/is, ""); 
+            formatted += `<div class="match-grid">${headerHtml}${tableRowsHtml}</div>`;
         }
     }
 
-    // 2. DOUBLE QUOTES ON NEW LINE
-    // Finds "Sentence" or “Sentence” and puts it on a new line
-    formatted = formatted.replace(/([^\n>])\s*([“"][^”"]+[”"])/g, '$1<br><span class="q-quote">$2</span>');
+    // 2. LONG QUOTES ON NEW LINE
+    // Only if length > 25 characters (avoids splitting "defined as" etc.)
+    formatted = formatted.replace(/([^\n>])\s*([“"][^”"]{25,}[”"])/g, '$1<br><span class="q-quote">$2</span>');
 
-    // 3. INTELLIGENT POINT SPLITTING
-    // Handles 1. 2. 3. | (a) (b) (c) | A. B. C. | Roman I. II.
+    // 3. BULLET POINTS (Strict New Line)
+    // Roman Numerals (I. II. III. IV. V. VI.) - Case sensitive to avoid mixed words
+    formatted = formatted.replace(/(\s|^)((?:I|II|III|IV|V|VI)\.[\s]+)/g, '<br><span class="q-point">$2</span>');
     
-    // a. Numbered (1. Text)
+    // Numbered (1. 2. 3.)
     formatted = formatted.replace(/(\s|^)(\(?\d+\.\s+)/g, '<br><span class="q-point">$2</span>');
     
-    // b. Lettered ( (a) Text or a. Text )
-    // Avoid splitting "approx." or "e.g."
+    // Letters ((a) (b) or a. b.) - guarded against e.g., i.e., approx.
     formatted = formatted.replace(/(\s|^)(\(?[a-z]\)[\.\)]\s+)(?![a-z])/gi, '<br><span class="q-point">$2</span>');
 
-    // c. Roman Numerals ( I. Text or (i) Text )
-    formatted = formatted.replace(/(\s|^)(\(?[ivx]+\)[\.\)]\s+)/gi, '<br><span class="q-point">$2</span>');
-
-    // d. Bullets
+    // Standard Bullets
     formatted = formatted.replace(/([^\n])\s*([•\-\*]\s+)/g, '$1<br><span class="q-point">$2</span>');
 
     // 4. ASSERTION / REASON
@@ -248,7 +252,7 @@ function formatQuestionText(text) {
 
     // Cleanup extra breaks
     formatted = formatted.replace(/(<br>){2,}/g, '<br>');
-    formatted = formatted.replace(/^<br>/, ''); // Remove leading break
+    formatted = formatted.replace(/^<br>/, ''); 
 
     return formatted;
 }
@@ -312,8 +316,8 @@ function openExplanationInTab(fullExplanation, qNum) {
                 }
 
                 .container { 
-                    width: 94%; 
-                    max-width: 94%;
+                    width: 96%; 
+                    max-width: 96%;
                     min-height: 100vh;
                     margin: 0 auto; 
                     background: var(--card-bg);
