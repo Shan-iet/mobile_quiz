@@ -251,43 +251,50 @@ function openExplanationInTab(fullExplanation, qNum) {
                     background: var(--bg-color); 
                     color: var(--text-color);      
                     font-family: 'Segoe UI', system-ui, sans-serif; 
-                    padding: 40px; 
-                    line-height: 1.8; 
-                    transition: background 0.3s, color 0.3s;
+                    /* DEFAULT MOBILE LAYOUT (Portrait) */
+                    padding: 0; 
                     margin: 0;
+                    line-height: 1.6; 
+                    transition: background 0.3s, color 0.3s;
                 }
+
+                .container { 
+                    /* Full width on mobile portrait */
+                    width: 100%; 
+                    max-width: 100%;
+                    min-height: 100vh;
+                    margin: 0; 
+                    background: var(--card-bg);
+                    padding: 25px 20px;       
+                    border-radius: 0;
+                    box-shadow: none;
+                }
+
                 .header-row {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
                     border-bottom: 2px solid var(--border-color);
                     padding-bottom: 15px;
-                    margin-bottom: 30px;
+                    margin-bottom: 25px;
                 }
-                h1 { margin: 0; font-size: 24px; color: var(--text-color); }
+                h1 { margin: 0; font-size: 1.3rem; color: var(--text-color); }
                 
                 .theme-toggle {
                     background: none;
-                    border: 2px solid var(--text-color);
+                    border: 1px solid var(--text-color);
                     color: var(--text-color);
-                    padding: 5px 15px;
+                    padding: 6px 12px;
                     border-radius: 20px;
                     cursor: pointer;
                     font-weight: 600;
+                    font-size: 0.9rem;
                 }
 
-                .container { 
-                    max-width: 850px; 
-                    margin: 0 auto; 
-                    background: var(--card-bg);
-                    padding: 50px;       
-                    border-radius: 8px;
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                }
                 p { 
-                    margin-bottom: 20px; 
-                    font-size: 17px; 
-                    text-align: justify; 
+                    margin-bottom: 15px; 
+                    font-size: 1.05rem; /* Readable Mobile Size */
+                    text-align: left; 
                 }
                 
                 .highlight-term { font-weight: bold; color: var(--highlight-term); }
@@ -297,22 +304,21 @@ function openExplanationInTab(fullExplanation, qNum) {
                     background-color: var(--highlight-stmt-bg);
                     padding: 2px 6px;
                     border-radius: 4px;
-                    display: inline-block; 
                 }
-                .definition-header { font-weight: 400; color: var(--highlight-def); display: inline-block; }
+                .definition-header { font-weight: 400; color: var(--highlight-def); }
 
                 .tips-box {
-                    margin-top: 40px;
+                    margin-top: 30px;
                     background-color: var(--tips-bg); 
-                    border-left: 6px solid var(--tips-border);
-                    padding: 25px;
+                    border-left: 5px solid var(--tips-border);
+                    padding: 15px;
                     border-radius: 4px;
                 }
                 .tips-header {
                     font-weight: 800;
                     color: var(--tips-header);
-                    font-size: 1.1rem;
-                    margin-bottom: 15px;
+                    font-size: 1rem;
+                    margin-bottom: 10px;
                     display: block;
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
@@ -321,44 +327,41 @@ function openExplanationInTab(fullExplanation, qNum) {
                 .close-btn {
                     display: block;
                     width: 100%;
-                    margin-top: 40px;
+                    margin-top: 30px;
                     background: var(--btn-bg);
                     color: white;
                     border: none;
-                    padding: 15px;
+                    padding: 14px;
                     border-radius: 8px;
                     cursor: pointer;
-                    font-size: 16px;
+                    font-size: 1rem;
                     font-weight: 600;
-                    transition: background 0.2s;
                 }
-                .close-btn:hover { background: var(--btn-hover); }
-
-                /* --- LANDSCAPE MOBILE ADJUSTMENTS --- */
-                @media screen and (orientation: landscape) and (max-height: 500px) {
-                    body { 
-                        padding: 0; 
+                
+                /* --- LANDSCAPE / DESKTOP ENHANCEMENTS --- */
+                @media screen and (min-width: 768px), screen and (orientation: landscape) and (max-height: 500px) {
+                    body {
+                        padding: 20px;
                     }
-                    .container { 
-                        /* INCREASED WIDTH HERE */
+                    .container {
+                        /* Floating Card Look for Larger Screens */
                         width: 94%; 
                         max-width: 880px;
-                        padding: 15px 25px; 
-                        margin: 0 auto; 
-                        border-radius: 0;
-                        box-shadow: none;
-                        min-height: 100vh;
+                        margin: 0 auto;
+                        padding: 40px;
+                        border-radius: 12px;
+                        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                        min-height: auto;
                     }
-                    h1 { font-size: 1.3rem; }
-                    .header-row { margin-bottom: 15px; }
-                    p { font-size: 1.15rem; }
+                    h1 { font-size: 1.6rem; }
+                    p { font-size: 1.15rem; line-height: 1.8; }
                 }
             </style>
         </head>
         <body data-theme="dark">
             <div class="container">
                 <div class="header-row">
-                    <h1>Question ${qNum} - Analysis</h1>
+                    <h1>Question ${qNum} Analysis</h1>
                     <button class="theme-toggle" onclick="toggleTheme()">🌗 Theme</button>
                 </div>
                 
