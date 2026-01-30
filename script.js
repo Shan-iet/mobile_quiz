@@ -3,7 +3,11 @@ let totalSeconds = 0, qSecondsLeft = 0;
 let recentHistory = JSON.parse(localStorage.getItem("QUIZ_HISTORY") || "[]");
 let quizChart = null;
 
-window.onload = renderRecentQuizzes;
+window.onload = () => {
+    renderRecentQuizzes();
+    // Ensure we start in Home Mode (Full Width)
+    document.querySelector('.app-container').classList.remove('quiz-mode');
+};
 
 document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
@@ -109,6 +113,9 @@ function importSyncFileManual() {
 function saveAndLoad() { saveToHistory(); loadSession(); }
 
 function loadSession() {
+  // Switch Layout to Quiz Mode (activates Sidebar Grid)
+  document.querySelector('.app-container').classList.add('quiz-mode');
+  
   questions = activeSession.questions; qIndex = activeSession.qIndex; totalSeconds = activeSession.totalSeconds;
   startTotalTimer(); loadQuestion();
   
@@ -183,74 +190,34 @@ function processTextSmartly(text) {
     return paragraphs.map(p => `<p>${smartHighlight(p)}</p>`).join('');
 }
 
-// --- NEW ROBUST QUESTION FORMATTER ---
+// --- NEW SMART QUESTION FORMATTER (No Matrix, Clean Bullets) ---
 function formatQuestionText(text) {
     if (!text) return "";
     let formatted = text;
 
-    // 1. MATCH THE FOLLOWING TABLE GENERATOR (Robust)
-    // Detect "List-I" and "List-II"
-    if (/(List\s*[-_]?\s*I).*(List\s*[-_]?\s*II)/is.test(formatted)) {
-        
-        let headerHtml = "";
-        let tableRowsHtml = "";
-        
-        // Extract Headers
-        const headerMatch = formatted.match(/(List\s*[-_]?\s*I[^:]*).*(List\s*[-_]?\s*II[^:]*)/i);
-        if (headerMatch) {
-            // Clean headers (remove parens if messy)
-            let h1 = headerMatch[1].replace(/[:\n]/g, '').trim();
-            let h2 = headerMatch[2].replace(/[:\n]/g, '').trim();
-            headerHtml = `<div class="match-header"><div>${h1}</div><div>${h2}</div></div>`;
-        }
+    // 1. LONG QUOTES ON NEW LINE
+    // Only if length > 30 characters
+    formatted = formatted.replace(/([^\n>])\s*([“"][^”"]{30,}[”"])/g, '$1<br><span class="q-quote">$2</span>');
 
-        // Logic: Find A. item ... 1. match
-        // We use a regex that captures the letter, content, number, content
-        // We iterate and BUILD a separate table string, then REMOVE the matches from the main text
-        const pairRegex = /([A-D])\s*[\.\-]\s*([^1-4\n]+?)\s+([1-4])\s*[\.\-]\s*([^\n]+)/g;
-        
-        let hasPairs = false;
-        
-        // Replace pairs with empty string in main text, but collect them for the table
-        formatted = formatted.replace(pairRegex, (match, l, lContent, n, nContent) => {
-            hasPairs = true;
-            tableRowsHtml += `<div class="match-row">
-                                <div class="match-col"><strong>${l}.</strong> ${lContent.trim()}</div>
-                                <div class="match-col"><strong>${n}.</strong> ${nContent.trim()}</div>
-                              </div>`;
-            return ""; // Remove from main text
-        });
-
-        // If pairs found, append the table to the end (or where List headers were)
-        if (hasPairs) {
-            // Clean up left over List headers from the text so they don't duplicate
-            formatted = formatted.replace(/(List\s*[-_]?\s*I.*List\s*[-_]?\s*II.*?:?)/is, ""); 
-            formatted += `<div class="match-grid">${headerHtml}${tableRowsHtml}</div>`;
-        }
-    }
-
-    // 2. LONG QUOTES ON NEW LINE
-    // Only if length > 25 characters (avoids splitting "defined as" etc.)
-    formatted = formatted.replace(/([^\n>])\s*([“"][^”"]{25,}[”"])/g, '$1<br><span class="q-quote">$2</span>');
-
-    // 3. BULLET POINTS (Strict New Line)
-    // Roman Numerals (I. II. III. IV. V. VI.) - Case sensitive to avoid mixed words
-    formatted = formatted.replace(/(\s|^)((?:I|II|III|IV|V|VI)\.[\s]+)/g, '<br><span class="q-point">$2</span>');
+    // 2. BULLET POINTS (Strict New Line & Spacing)
     
-    // Numbered (1. 2. 3.)
-    formatted = formatted.replace(/(\s|^)(\(?\d+\.\s+)/g, '<br><span class="q-point">$2</span>');
+    // Roman (I. II.) - Case sensitive
+    formatted = formatted.replace(/(\s|^)((?:I{1,3}|IV|V|VI{0,3}|IX|X)\.)\s+/g, '<br><span class="q-point">$2&nbsp;</span>');
     
-    // Letters ((a) (b) or a. b.) - guarded against e.g., i.e., approx.
-    formatted = formatted.replace(/(\s|^)(\(?[a-z]\)[\.\)]\s+)(?![a-z])/gi, '<br><span class="q-point">$2</span>');
+    // Numbered (1. 2.)
+    formatted = formatted.replace(/(\s|^)(\(?\d+\.)\s+/g, '<br><span class="q-point">$2&nbsp;</span>');
+    
+    // Letters ((a) (b) or a. b.) - Guard against e.g. / i.e.
+    formatted = formatted.replace(/(\s|^)(\(?[a-z]\)[\.\)])\s+(?![a-z]\.)/gi, '<br><span class="q-point">$2&nbsp;</span>');
 
-    // Standard Bullets
-    formatted = formatted.replace(/([^\n])\s*([•\-\*]\s+)/g, '$1<br><span class="q-point">$2</span>');
+    // Symbols
+    formatted = formatted.replace(/([^\n])\s*([•\-\*])\s+/g, '$1<br><span class="q-point">$2&nbsp;</span>');
 
-    // 4. ASSERTION / REASON
+    // 3. ASSERTION / REASON
     formatted = formatted.replace(/(Assertion\s*\(?A\)?\s*[:.-])/gi, '<br><div class="ar-box"><strong>$1</strong>');
     formatted = formatted.replace(/(Reason\s*\(?R\)?\s*[:.-])/gi, '</div><div class="ar-box"><strong>$1</strong>');
 
-    // Cleanup extra breaks
+    // Cleanup
     formatted = formatted.replace(/(<br>){2,}/g, '<br>');
     formatted = formatted.replace(/^<br>/, ''); 
 
