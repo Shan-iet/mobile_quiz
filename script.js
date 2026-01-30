@@ -188,30 +188,22 @@ function formatQuestionText(text) {
     if (!text) return "";
     let formatted = text;
 
-    // 1. Detect and Build Tables for "Match List" questions
-    // Looks for "List-I" and "List-II" (case insensitive)
+    // 1. MATCH THE FOLLOWING TABLE GENERATOR
+    // Detects "List-I" and "List-II" logic
     if (/(List\s*[-_]?\s*I).*(List\s*[-_]?\s*II)/is.test(formatted)) {
         
-        // Extract the two lists roughly
-        let parts = formatted.split(/(List\s*[-_]?\s*I+|Column\s*[-_]?\s*I+)/i);
-        
-        // If we found a split, try to find paired items
-        // Strategy: Look for "A. text" ... "1. text"
-        
-        // Let's use a robust replace for the table generation instead of splitting
-        // We look for patterns like: A. ... 1. ...
-        // Or A- ... 1- ...
-        
-        // We will build a temporary Grid Structure
-        let gridHtml = '<div class="match-grid">';
-        
-        // Regex to find "A. Content" and "1. Content" that might be separated by other text
-        // This is a heuristic: Find [A-D]. (something) ... [1-4]. (something)
-        
+        let headerRow = "";
+        // Try to capture custom headers e.g., "List-I (Events)"
+        const headerMatch = formatted.match(/(List\s*[-_]?\s*I[^:]*).*(List\s*[-_]?\s*II[^:]*)/i);
+        if(headerMatch) {
+             headerRow = `<div class="match-header">
+                            <div>${headerMatch[1]}</div>
+                            <div>${headerMatch[2]}</div>
+                          </div>`;
+        }
+
+        // Logic to pairs: A. content ... 1. content
         let foundMatch = false;
-        
-        // Attempt to find pairs line by line or chunk by chunk
-        // We look for (Letter)(Separator)(Content) ... (Number)(Separator)(Content)
         const pairRegex = /([A-D])\s*[\.\-]\s*([^1-4\n]+)\s*([1-4])\s*[\.\-]\s*([^\n]+)/g;
         
         formatted = formatted.replace(pairRegex, (match, l, lContent, n, nContent) => {
@@ -223,39 +215,40 @@ function formatQuestionText(text) {
         });
 
         if (foundMatch) {
-            // Wrap the headers if they exist
-            formatted = formatted.replace(/(List\s*[-_]?\s*I.*List\s*[-_]?\s*II)/i, '<div class="match-header">$1</div>');
-            // Wrap the rows we created
-            // Since we replaced in place, the "rows" are embedded. 
-            // We just need to ensure the container div surrounds them if possible, 
-            // or just let them stand as block elements which our CSS handles.
+            // Remove the raw headers from text if they exist to avoid duplication
+            formatted = formatted.replace(/(List\s*[-_]?\s*I.*List\s*[-_]?\s*II)/i, '');
+            // Wrap in container
+            formatted = `<div class="match-grid">${headerRow}${formatted}</div>`;
         }
     }
 
-    // 2. Intelligent Point Splitting (Bullets/Numbers)
-    // Splits if it sees a number/letter at start of string OR after punctuation/newline
-    // Does NOT require a colon.
-    // Handles: "1. text" "(a) text" "A. text"
-    
-    // a. Numbered Points (1. 2. 3.)
-    formatted = formatted.replace(/(^|[\.\?\!\n])\s*(\(?\d+\.\s+)/g, '$1<br><span class="q-point">$2</span>');
-    
-    // b. Lettered Points (a) (b) or a. b.
-    // Avoid splitting simple words like "a." in "approx." by ensuring it's followed by space and capital or long text
-    formatted = formatted.replace(/(^|[\.\?\!\n])\s*(\(?[a-e]\)[\.\)]\s+)/gi, '$1<br><span class="q-point">$2</span>');
+    // 2. DOUBLE QUOTES ON NEW LINE
+    // Finds "Sentence" or “Sentence” and puts it on a new line
+    formatted = formatted.replace(/([^\n>])\s*([“"][^”"]+[”"])/g, '$1<br><span class="q-quote">$2</span>');
 
-    // c. Bullets
+    // 3. INTELLIGENT POINT SPLITTING
+    // Handles 1. 2. 3. | (a) (b) (c) | A. B. C. | Roman I. II.
+    
+    // a. Numbered (1. Text)
+    formatted = formatted.replace(/(\s|^)(\(?\d+\.\s+)/g, '<br><span class="q-point">$2</span>');
+    
+    // b. Lettered ( (a) Text or a. Text )
+    // Avoid splitting "approx." or "e.g."
+    formatted = formatted.replace(/(\s|^)(\(?[a-z]\)[\.\)]\s+)(?![a-z])/gi, '<br><span class="q-point">$2</span>');
+
+    // c. Roman Numerals ( I. Text or (i) Text )
+    formatted = formatted.replace(/(\s|^)(\(?[ivx]+\)[\.\)]\s+)/gi, '<br><span class="q-point">$2</span>');
+
+    // d. Bullets
     formatted = formatted.replace(/([^\n])\s*([•\-\*]\s+)/g, '$1<br><span class="q-point">$2</span>');
 
-    // 3. Assertion / Reason (Standardized)
+    // 4. ASSERTION / REASON
     formatted = formatted.replace(/(Assertion\s*\(?A\)?\s*[:.-])/gi, '<br><div class="ar-box"><strong>$1</strong>');
     formatted = formatted.replace(/(Reason\s*\(?R\)?\s*[:.-])/gi, '</div><div class="ar-box"><strong>$1</strong>');
-    // Close the div if we opened it (simple heuristic, adds closing div at end of Reason segment)
-    // Actually, simple line breaks are safer for HTML structure stability in regex replacers.
-    // Let's stick to Bolds and Breaks for A/R
-    
-    // Clean up double breaks
+
+    // Cleanup extra breaks
     formatted = formatted.replace(/(<br>){2,}/g, '<br>');
+    formatted = formatted.replace(/^<br>/, ''); // Remove leading break
 
     return formatted;
 }

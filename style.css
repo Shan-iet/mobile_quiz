@@ -124,37 +124,48 @@ h1, h2, h3, h4 { margin-top: 0; }
   word-wrap: break-word;
 }
 
-/* NEW TABLE STYLES */
+/* IMPROVED TABLE STYLES */
 .match-grid {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 0; /* Remove gap for seamless table look */
     background: rgba(0,0,0,0.15);
-    padding: 10px;
     border-radius: 8px;
-    margin: 10px 0;
+    margin: 15px 0;
+    border: 1px solid #334155;
+    overflow: hidden;
 }
 .match-header {
-    font-weight: bold;
-    color: #94a3b8;
-    margin-bottom: 5px;
-    border-bottom: 1px solid #334155;
-    padding-bottom: 5px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    font-weight: 700;
+    color: #e2e8f0;
+    background: #334155;
+    padding: 10px 15px;
+    border-bottom: 2px solid #475569;
 }
 .match-row {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Two columns for pairs */
-    gap: 15px;
+    grid-template-columns: 1fr 1fr; /* Two columns */
+    padding: 12px 15px;
     border-bottom: 1px solid rgba(255,255,255,0.05);
-    padding-bottom: 5px;
 }
+.match-row:nth-child(even) { background: rgba(255,255,255,0.02); } /* Stripe effect */
 .match-row:last-child { border-bottom: none; }
-.match-col { font-size: 0.95em; }
+.match-col { font-size: 0.95em; align-self: center; }
 
-/* NEW POINT STYLES */
+/* NEW POINT & QUOTE STYLES */
 .q-point {
     display: inline-block;
     margin-left: 5px;
+}
+.q-quote {
+    display: block;
+    margin: 10px 0 10px 15px;
+    padding-left: 10px;
+    border-left: 3px solid var(--primary);
+    font-style: italic;
+    color: #cbd5e1;
 }
 
 .source-tag {
@@ -315,15 +326,16 @@ h1, h2, h3, h4 { margin-top: 0; }
   padding: 0;
 }
 
-/* Explicit Scroll for Sidebar Boxes */
+/* Explicit Scroll for Sidebar Boxes - Max 3 Rows */
 .sidebar-list { 
   display: grid; 
   grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); 
   gap: 8px;
   
-  /* Calculated for exactly 3 rows:
-     Approx 28-30px height per pill + gap.
-     112px allows 3 rows comfortably.
+  /* Height Calculation: 
+     Approx 28px (pill) + 8px (gap) = 36px per row.
+     3 rows * 36px = ~108px.
+     Setting 112px allows 3 rows with small buffer.
   */
   max-height: 112px; 
   
