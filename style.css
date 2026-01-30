@@ -21,9 +21,9 @@ body {
   overflow-x: hidden;
 }
 
-/* --- APP CONTAINER (Dynamic Mode) --- */
+/* --- DYNAMIC LAYOUT --- */
 .app-container { 
-  /* DEFAULT (Home Mode): Single Column, Centered, 96% Width */
+  /* Default (Home Mode): Block, Centered, 96% Width */
   display: block; 
   max-width: 96%; 
   margin: 20px auto; 
@@ -31,7 +31,7 @@ body {
   width: 100%;
 }
 
-/* QUIZ MODE: Switch to Grid Layout */
+/* Quiz Mode: Grid Layout */
 .app-container.quiz-mode {
   display: grid;
   grid-template-columns: 1fr 240px; 
@@ -132,7 +132,7 @@ h1, h2, h3, h4 { margin-top: 0; }
   word-wrap: break-word;
 }
 
-/* NEW POINT & QUOTE STYLES */
+/* SMART STYLES */
 .q-point {
     display: inline-block;
     margin-left: 5px;
@@ -158,7 +158,7 @@ h1, h2, h3, h4 { margin-top: 0; }
     font-weight: 400;
 }
 
-/* ... Options ... */
+/* ... Options (Grid) ... */
 .options { 
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
@@ -307,7 +307,7 @@ h1, h2, h3, h4 { margin-top: 0; }
   padding: 0;
 }
 
-/* Explicit Scroll for Sidebar Boxes - Max 3 Rows */
+/* Sidebar Scroll (Max 3 Rows) */
 .sidebar-list { 
   display: grid; 
   grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); 
@@ -357,14 +357,14 @@ h1, h2, h3, h4 { margin-top: 0; }
 .report-footer { display: flex; justify-content: center; gap: 15px; margin-top: 30px; }
 
 
-/* --- FRONT PAGE LAYOUT (96% Width) --- */
+/* --- ACTION GRID (Home Page) --- */
 .action-grid { 
   display: grid; 
   grid-template-columns: 1fr 1fr; 
   gap: 20px; 
   margin: 30px auto; 
-  width: 100%; /* Fill the container */
-  max-width: 1000px; /* Cap width for huge screens */
+  width: 100%; 
+  max-width: 1000px;
 }
 
 .action-card { 
@@ -423,10 +423,7 @@ input[type="file"] { display: none; }
    ========================================= */
 
 @media (max-width: 768px) and (orientation: portrait) {
-  /* No special grid override needed since block is default */
-  .app-container { 
-    /* The block default works perfectly for 96% width */
-  }
+  /* Default is block (home mode) which works for mobile portrait */
   
   .sidebar { 
     position: static; 
@@ -435,8 +432,9 @@ input[type="file"] { display: none; }
   }
   
   .action-grid { 
-      grid-template-columns: 1fr; /* Stack vertically on phones */
+      grid-template-columns: 1fr; /* Stack on phone */
       gap: 25px; 
+      margin: 20px auto;
   }
   
   .action-card { padding: 30px 20px; }
@@ -448,9 +446,7 @@ input[type="file"] { display: none; }
 @media screen and (orientation: landscape) and (max-height: 600px) {
   body { padding-bottom: 10px; }
 
-  /* In landscape mobile, we still want full width for home */
-  /* But quiz mode should switch to grid */
-  
+  /* In Quiz Mode: Grid */
   .app-container.quiz-mode {
     grid-template-columns: 1fr 200px;
     padding: 0 10px;
