@@ -5,7 +5,7 @@ let quizChart = null;
 
 window.onload = () => {
     renderRecentQuizzes();
-    // Ensure we start in Home Mode (Full Width)
+    // Start in Home Mode (Full Width, Centered)
     const appContainer = document.querySelector('.app-container');
     if(appContainer) appContainer.classList.remove('quiz-mode');
 };
@@ -85,7 +85,7 @@ function startNewSession() {
         const finalMark = userMark ? parseFloat(userMark) : (data.markPerQuestion !== undefined ? data.markPerQuestion : 1.666666666667);
         const finalNeg = userNeg ? parseFloat(userNeg) : (data.negativeMark !== undefined ? data.negativeMark : 0.55555555556);
 
-        // Store original filename
+        // Store original filename for sync saving later
         const originalName = f.name.replace(/\.json$/i, "");
 
         activeSession = { 
@@ -204,12 +204,13 @@ function processTextSmartly(text) {
     return paragraphs.map(p => `<p>${smartHighlight(p)}</p>`).join('');
 }
 
-// --- QUESTION FORMATTER (Matrix Removed, Clean Bullets) ---
+// --- QUESTION FORMATTER (No Matrix, Clean Bullets) ---
 function formatQuestionText(text) {
     if (!text) return "";
     let formatted = text;
 
     // 1. LONG QUOTES ON NEW LINE
+    // Only if length > 30 characters
     formatted = formatted.replace(/([^\n>])\s*([“"][^”"]{30,}[”"])/g, '$1<br><span class="q-quote">$2</span>');
 
     // 2. BULLET POINTS (Strict New Line & Spacing)
@@ -220,10 +221,10 @@ function formatQuestionText(text) {
     // Numbered (1. 2. 3.)
     formatted = formatted.replace(/(\s|^)(\(?\d+\.)\s+/g, '<br><span class="q-point">$2&nbsp;</span>');
     
-    // Letters ((a) (b) or a. b.)
+    // Letters ((a) (b) or a. b.) - Guard against e.g. / i.e.
     formatted = formatted.replace(/(\s|^)(\(?[a-z]\)[\.\)])\s+(?![a-z]\.)/gi, '<br><span class="q-point">$2&nbsp;</span>');
 
-    // Symbols (• - *)
+    // Symbols
     formatted = formatted.replace(/([^\n])\s*([•\-\*])\s+/g, '$1<br><span class="q-point">$2&nbsp;</span>');
 
     // 3. ASSERTION / REASON
@@ -256,27 +257,29 @@ function openExplanationInTab(fullExplanation, qNum) {
                 
                 body { background: var(--bg-color); color: var(--text-color); font-family: 'Segoe UI', system-ui, sans-serif; padding: 0; margin: 0; line-height: 1.6; transition: background 0.3s, color 0.3s; }
                 
-                /* RESTORED: Floating Card Layout */
+                /* EXPLANATION PAGE: 96% WIDTH IN PORTRAIT */
                 .container { 
-                    width: 94%; 
-                    max-width: 880px; /* Restored Max Width for Readability */
+                    width: 96%; 
+                    max-width: 96%; /* Forces 96% on mobile/portrait */
                     min-height: 100vh; 
-                    margin: 20px auto; 
+                    margin: 10px auto; 
                     background: var(--card-bg); 
-                    padding: 30px; 
-                    border-radius: 12px; 
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+                    padding: 20px; 
+                    border-radius: 8px; /* Slight rounded corners */
+                    box-shadow: none; 
                 }
                 
-                @media screen and (max-width: 600px) {
-                    .container {
-                        width: 100%;
-                        max-width: 100%;
-                        margin: 0;
-                        padding: 20px;
-                        border-radius: 0;
-                        box-shadow: none;
-                    }
+                /* DESKTOP/LANDSCAPE: Restored Card Layout */
+                @media screen and (min-width: 768px) { 
+                    .container { 
+                        width: 94%;
+                        max-width: 880px; 
+                        margin: 20px auto; 
+                        padding: 40px; 
+                        border-radius: 12px; 
+                        box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+                        min-height: auto; 
+                    } 
                 }
 
                 .header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; margin-bottom: 25px; }
@@ -480,12 +483,14 @@ function resumeFromHistory(i) { activeSession = recentHistory[i]; loadSession();
 function deleteHistory(i) { recentHistory.splice(i, 1); localStorage.setItem("QUIZ_HISTORY", JSON.stringify(recentHistory)); renderRecentQuizzes(); }
 function clearAllHistory() { recentHistory = []; localStorage.removeItem("QUIZ_HISTORY"); renderRecentQuizzes(); }
 
+// --- FILE SAVING WITH TIMESTAMP ---
 function exitSession() { 
     if(!confirm("Save progress and exit?")) return;
     autoSave();
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(activeSession));
     const dlNode = document.createElement('a');
     
+    // Generate Timestamp YYYY-MM-DD_HH-MM
     const now = new Date();
     const timestamp = now.getFullYear() + "-" +
         String(now.getMonth() + 1).padStart(2, '0') + "-" +
@@ -493,6 +498,7 @@ function exitSession() {
         String(now.getHours()).padStart(2, '0') + "-" +
         String(now.getMinutes()).padStart(2, '0');
 
+    // Use original file name if available
     const baseName = activeSession.originalFileName || activeSession.title || "quiz";
     
     dlNode.setAttribute("href", dataStr);
