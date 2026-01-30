@@ -116,7 +116,7 @@ function loadSession() {
   autoSaveInterval = setInterval(autoSave, 5000); 
 }
 
-// --- INTELLIGENT TEXT PROCESSING (EXPLANATION) ---
+// --- INTELLIGENT TEXT PROCESSING ---
 
 function smartHighlight(text) {
     if (!text) return "";
@@ -183,56 +183,79 @@ function processTextSmartly(text) {
     return paragraphs.map(p => `<p>${smartHighlight(p)}</p>`).join('');
 }
 
-// --- SMART QUESTION FORMATTER (NEW) ---
+// --- NEW SMART QUESTION FORMATTER ---
 function formatQuestionText(text) {
     if (!text) return "";
     let formatted = text;
 
-    // 1. Assertion / Reason Splitting
-    // Adds a break and bolding for 'Assertion (A):' and 'Reason (R):'
-    formatted = formatted.replace(/(Assertion\s*\(?A\)?\s*[:.-])\s*/gi, '<br><strong class="q-label text-primary">$1</strong> ');
-    formatted = formatted.replace(/(Reason\s*\(?R\)?\s*[:.-])\s*/gi, '<br><strong class="q-label text-primary">$1</strong> ');
-
-    // 2. Statement Splitting
-    formatted = formatted.replace(/(Statement\s*[IVX1-9]+\s*[:.-])\s*/gi, '<br><strong class="q-label">$1</strong> ');
-
-    // 3. Match The Following / List Detection
-    // Detects "List-I" and "List-II" and tries to create a Grid Table
-    if (/(List\s*[-_]?\s*I|Column\s*[-_]?\s*I)/i.test(formatted) && /(List\s*[-_]?\s*II|Column\s*[-_]?\s*II)/i.test(formatted)) {
+    // 1. Detect and Build Tables for "Match List" questions
+    // Looks for "List-I" and "List-II" (case insensitive)
+    if (/(List\s*[-_]?\s*I).*(List\s*[-_]?\s*II)/is.test(formatted)) {
         
-        // Try to identify items like "A. Item   1. Match" or "A- Item   1- Match"
-        // This regex looks for [A-D] followed by content, then [1-4] followed by content
-        // It's a heuristic to catch standard match formats embedded in text
-        const matchRegex = /([A-D])[\.\-]\s*(.*?)\s+([1-4])[\.\-]\s*(.*?)(?=(?:[A-D][\.\-]|$))/g;
+        // Extract the two lists roughly
+        let parts = formatted.split(/(List\s*[-_]?\s*I+|Column\s*[-_]?\s*I+)/i);
         
-        // Temporary placeholder to avoid destroying the text if regex fails
-        let tableRows = "";
-        let hasMatch = false;
+        // If we found a split, try to find paired items
+        // Strategy: Look for "A. text" ... "1. text"
         
-        let matchBlock = formatted.replace(matchRegex, (match, p1, item1, p2, item2) => {
-            hasMatch = true;
-            return `<div class="match-row"><div class="match-col"><strong>${p1}.</strong> ${item1}</div><div class="match-col"><strong>${p2}.</strong> ${item2}</div></div>`;
+        // Let's use a robust replace for the table generation instead of splitting
+        // We look for patterns like: A. ... 1. ...
+        // Or A- ... 1- ...
+        
+        // We will build a temporary Grid Structure
+        let gridHtml = '<div class="match-grid">';
+        
+        // Regex to find "A. Content" and "1. Content" that might be separated by other text
+        // This is a heuristic: Find [A-D]. (something) ... [1-4]. (something)
+        
+        let foundMatch = false;
+        
+        // Attempt to find pairs line by line or chunk by chunk
+        // We look for (Letter)(Separator)(Content) ... (Number)(Separator)(Content)
+        const pairRegex = /([A-D])\s*[\.\-]\s*([^1-4\n]+)\s*([1-4])\s*[\.\-]\s*([^\n]+)/g;
+        
+        formatted = formatted.replace(pairRegex, (match, l, lContent, n, nContent) => {
+            foundMatch = true;
+            return `<div class="match-row">
+                        <div class="match-col"><strong>${l}.</strong> ${lContent.trim()}</div>
+                        <div class="match-col"><strong>${n}.</strong> ${nContent.trim()}</div>
+                    </div>`;
         });
 
-        if (hasMatch) {
-            // Wrap the matches in a container
-            // We use a specific marker to identify where the table started if possible, 
-            // but since we replaced globally, we just wrap the result in a clean div if it looks like a list.
-            formatted = matchBlock;
-            // Add a header wrapper if we can find the List headers
-            formatted = formatted.replace(/(List\s*[-_]?\s*I.*List\s*[-_]?\s*II)/i, '<div class="match-headers">$1</div><div class="match-grid">');
-            formatted += '</div>'; // Close grid
-            
-            // Cleanup: The regex might leave the closing div dangling or misplaced, 
-            // so a cleaner approach for the grid is to just apply the class to the rows we built.
-            // Let's refine: Just replace the rows and ensure they display block.
-            // The CSS .match-row { display: grid; grid-template-columns: 1fr 1fr; } will handle it.
+        if (foundMatch) {
+            // Wrap the headers if they exist
+            formatted = formatted.replace(/(List\s*[-_]?\s*I.*List\s*[-_]?\s*II)/i, '<div class="match-header">$1</div>');
+            // Wrap the rows we created
+            // Since we replaced in place, the "rows" are embedded. 
+            // We just need to ensure the container div surrounds them if possible, 
+            // or just let them stand as block elements which our CSS handles.
         }
     }
 
-    // 4. Numbered Points (1. 2. 3.) on new lines (if not part of the match table above)
-    // We only split if it looks like a start of a line (or after punctuation)
-    formatted = formatted.replace(/([.;:])\s+(\(?\d+\.\s)/g, '$1<br>$2');
+    // 2. Intelligent Point Splitting (Bullets/Numbers)
+    // Splits if it sees a number/letter at start of string OR after punctuation/newline
+    // Does NOT require a colon.
+    // Handles: "1. text" "(a) text" "A. text"
+    
+    // a. Numbered Points (1. 2. 3.)
+    formatted = formatted.replace(/(^|[\.\?\!\n])\s*(\(?\d+\.\s+)/g, '$1<br><span class="q-point">$2</span>');
+    
+    // b. Lettered Points (a) (b) or a. b.
+    // Avoid splitting simple words like "a." in "approx." by ensuring it's followed by space and capital or long text
+    formatted = formatted.replace(/(^|[\.\?\!\n])\s*(\(?[a-e]\)[\.\)]\s+)/gi, '$1<br><span class="q-point">$2</span>');
+
+    // c. Bullets
+    formatted = formatted.replace(/([^\n])\s*([•\-\*]\s+)/g, '$1<br><span class="q-point">$2</span>');
+
+    // 3. Assertion / Reason (Standardized)
+    formatted = formatted.replace(/(Assertion\s*\(?A\)?\s*[:.-])/gi, '<br><div class="ar-box"><strong>$1</strong>');
+    formatted = formatted.replace(/(Reason\s*\(?R\)?\s*[:.-])/gi, '</div><div class="ar-box"><strong>$1</strong>');
+    // Close the div if we opened it (simple heuristic, adds closing div at end of Reason segment)
+    // Actually, simple line breaks are safer for HTML structure stability in regex replacers.
+    // Let's stick to Bolds and Breaks for A/R
+    
+    // Clean up double breaks
+    formatted = formatted.replace(/(<br>){2,}/g, '<br>');
 
     return formatted;
 }
@@ -296,9 +319,8 @@ function openExplanationInTab(fullExplanation, qNum) {
                 }
 
                 .container { 
-                    /* UPDATED WIDTH TO 94% AS REQUESTED */
                     width: 94%; 
-                    max-width: 94%; /* Ensures it stays wide */
+                    max-width: 94%;
                     min-height: 100vh;
                     margin: 0 auto; 
                     background: var(--card-bg);
@@ -307,10 +329,8 @@ function openExplanationInTab(fullExplanation, qNum) {
                     box-shadow: none;
                 }
                 
-                /* Desktop/Landscape Enhancement */
                 @media screen and (min-width: 768px) {
                     .container {
-                        /* Keep 94% but add margin top/bottom and rounded corners for aesthetics */
                         width: 94%;
                         margin: 20px auto;
                         padding: 40px;
@@ -432,9 +452,7 @@ function loadQuestion() {
 
   document.getElementById("questionCounter").innerText = `Q${qIndex + 1} / ${questions.length}`;
   
-  // --- USE NEW FORMATTER HERE ---
   let qHtml = (q.flag ? "🚩 " : "") + formatQuestionText(q.q);
-  // ------------------------------
   
   if(q.source) qHtml += `<span class="source-tag">Source: ${q.source}</span>`;
   document.getElementById("question").innerHTML = qHtml;

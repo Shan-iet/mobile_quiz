@@ -124,34 +124,38 @@ h1, h2, h3, h4 { margin-top: 0; }
   word-wrap: break-word;
 }
 
-/* SMART QUESTION STYLES */
-.q-label {
-    display: inline-block;
-    margin-top: 10px;
-    margin-bottom: 5px;
-    color: #cbd5e1;
-}
-.text-primary { color: var(--primary); }
-
+/* NEW TABLE STYLES */
 .match-grid {
-    display: grid;
-    gap: 10px;
-    margin-top: 15px;
-    margin-bottom: 15px;
-    background: rgba(0,0,0,0.1);
-    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(0,0,0,0.15);
+    padding: 10px;
     border-radius: 8px;
+    margin: 10px 0;
 }
-
+.match-header {
+    font-weight: bold;
+    color: #94a3b8;
+    margin-bottom: 5px;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 5px;
+}
 .match-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    padding-bottom: 8px;
+    grid-template-columns: 1fr 1fr; /* Two columns for pairs */
+    gap: 15px;
     border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding-bottom: 5px;
 }
 .match-row:last-child { border-bottom: none; }
 .match-col { font-size: 0.95em; }
+
+/* NEW POINT STYLES */
+.q-point {
+    display: inline-block;
+    margin-left: 5px;
+}
 
 .source-tag {
     display: block;
@@ -316,7 +320,13 @@ h1, h2, h3, h4 { margin-top: 0; }
   display: grid; 
   grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); 
   gap: 8px;
-  max-height: 135px; 
+  
+  /* Calculated for exactly 3 rows:
+     Approx 28-30px height per pill + gap.
+     112px allows 3 rows comfortably.
+  */
+  max-height: 112px; 
+  
   overflow-y: auto; 
   padding-right: 4px; 
   transition: max-height 0.3s ease;
@@ -437,10 +447,11 @@ input[type="file"] { display: none; }
     width: 100%; 
   }
   
+  /* 96% Width on Mobile Portrait as requested */
   .action-grid { 
       grid-template-columns: 1fr; 
       gap: 25px; 
-      width: 94%;
+      width: 96%;
       margin: 20px auto;
   }
   
@@ -466,10 +477,11 @@ input[type="file"] { display: none; }
   .quiz-header { margin-bottom: 5px; }
   .badge, .timer-pill { font-size: 11px; padding: 2px 6px; }
 
+  /* 96% Width on Mobile Landscape */
   .action-grid {
       display: grid;
       grid-template-columns: 1fr 1fr; 
-      width: 94%;
+      width: 96%;
       margin: 10px auto;
       gap: 15px;
   }
