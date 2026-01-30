@@ -111,21 +111,47 @@ h1, h2, h3, h4 { margin-top: 0; }
   transition: width 0.4s ease; 
 }
 
-/* ... Question Area (Modified) ... */
+/* ... Question Area ... */
 #question { 
   font-size: 1.4rem; 
   margin-bottom: 25px; 
   line-height: 1.5; 
   font-weight: 500;
-  
-  /* REMOVED INTERNAL SCROLLING AS REQUESTED */
   max-height: none; 
   overflow-y: visible;
-  
   padding-right: 0;
   overflow-wrap: break-word; 
   word-wrap: break-word;
 }
+
+/* SMART QUESTION STYLES */
+.q-label {
+    display: inline-block;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    color: #cbd5e1;
+}
+.text-primary { color: var(--primary); }
+
+.match-grid {
+    display: grid;
+    gap: 10px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    background: rgba(0,0,0,0.1);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.match-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.match-row:last-child { border-bottom: none; }
+.match-col { font-size: 0.95em; }
 
 .source-tag {
     display: block;
@@ -136,10 +162,9 @@ h1, h2, h3, h4 { margin-top: 0; }
     font-weight: 400;
 }
 
-/* ... Options (Grid Layout) ... */
+/* ... Options ... */
 .options { 
   display: grid;
-  /* Smart Grid: Stacks on mobile, Side-by-side if space allows (landscape) */
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
   gap: 15px; 
 }
@@ -153,16 +178,11 @@ h1, h2, h3, h4 { margin-top: 0; }
   color: var(--text); 
   border-radius: 12px; 
   cursor: pointer; 
-  
-  /* ENHANCED FONT SIZE */
   font-size: 1.15rem; 
-  
   transition: all 0.2s ease; 
   position: relative;
   white-space: normal; 
   line-height: 1.4;
-  
-  /* Ensure consistent height in grid */
   height: 100%;
   display: flex;
   align-items: center;
@@ -291,19 +311,12 @@ h1, h2, h3, h4 { margin-top: 0; }
   padding: 0;
 }
 
-/* Explicit Scroll for Sidebar Boxes (Limit to 3 Rows) */
+/* Explicit Scroll for Sidebar Boxes */
 .sidebar-list { 
   display: grid; 
   grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); 
   gap: 8px;
-  
-  /* Height Calculation:
-     Approx 35px per pill + 8px gap.
-     3 rows * ~43px = ~130px.
-     Setting max-height forces scroll after 3rd row.
-  */
   max-height: 135px; 
-  
   overflow-y: auto; 
   padding-right: 4px; 
   transition: max-height 0.3s ease;
@@ -348,16 +361,12 @@ h1, h2, h3, h4 { margin-top: 0; }
 .report-footer { display: flex; justify-content: center; gap: 15px; margin-top: 30px; }
 
 
-/* --- FRONT PAGE LAYOUT (The 94% Width Fix) --- */
-
-/* Default Action Grid (Desktop/Tablet) */
+/* --- FRONT PAGE LAYOUT --- */
 .action-grid { 
   display: grid; 
   grid-template-columns: 1fr 1fr; 
   gap: 20px; 
   margin: 30px auto; 
-  
-  /* Ensure it doesn't get too wide on massive screens */
   max-width: 1000px;
 }
 
@@ -416,7 +425,6 @@ input[type="file"] { display: none; }
    MEDIA QUERIES
    ========================================= */
 
-/* Mobile Portrait: Stack everything */
 @media (max-width: 768px) and (orientation: portrait) {
   .app-container { 
     grid-template-columns: 1fr; 
@@ -429,7 +437,6 @@ input[type="file"] { display: none; }
     width: 100%; 
   }
   
-  /* Enforce 94% width on Action Grid in Portrait */
   .action-grid { 
       grid-template-columns: 1fr; 
       gap: 25px; 
@@ -443,7 +450,6 @@ input[type="file"] { display: none; }
   .btn-full { padding: 16px; font-size: 1.1rem; }
 }
 
-/* Mobile Landscape */
 @media screen and (orientation: landscape) and (max-height: 600px) {
   body { padding-bottom: 10px; }
 
@@ -460,10 +466,9 @@ input[type="file"] { display: none; }
   .quiz-header { margin-bottom: 5px; }
   .badge, .timer-pill { font-size: 11px; padding: 2px 6px; }
 
-  /* Enforce 94% width on Action Grid in Landscape Mobile too */
   .action-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr; /* Keep side by side in landscape */
+      grid-template-columns: 1fr 1fr; 
       width: 94%;
       margin: 10px auto;
       gap: 15px;
@@ -473,13 +478,12 @@ input[type="file"] { display: none; }
   #question { 
     font-size: 1.15rem; 
     margin-bottom: 8px;
-    max-height: none; /* No internal scroll */
+    max-height: none; 
     padding-right: 5px;
   }
 
-  /* Optimize Grid for Landscape Mobile */
   .options { 
-    grid-template-columns: 1fr 1fr; /* Force 2 columns if space permits */
+    grid-template-columns: 1fr 1fr; 
     gap: 10px; 
   }
   

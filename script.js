@@ -116,33 +116,21 @@ function loadSession() {
   autoSaveInterval = setInterval(autoSave, 5000); 
 }
 
-// --- INTELLIGENT TEXT PROCESSING ---
+// --- INTELLIGENT TEXT PROCESSING (EXPLANATION) ---
 
 function smartHighlight(text) {
     if (!text) return "";
     let processed = text;
-    
-    // 1. Highlight Years, Acts, Sections
     processed = processed.replace(/(\b\d{4}\b|Article \d+|Section \d+|Schedule \d+|Amendment|Act \d{4})/gi, '<span class="highlight-term">$1</span>');
-    
-    // 2. Highlight Logic Statements (e.g., Statement 1 is correct)
     processed = processed.replace(/(Option [a-d] is [a-z ]*correct:?|Statement \d+ is [a-z ]*correct:?|Pair [IVX\d]+ is [a-z ]*correct:?|Pair [IVX\d]+ is [a-z ]*incorrect:?)/gi, '<span class="highlight-statement">$1</span>');
-    
-    // 3. Highlight Definition Headers (Word:)
     processed = processed.replace(/\b([A-Z][a-z]+:)/g, '<span class="definition-header">$1</span>');
-
     return processed;
 }
 
 function smartBreakParagraphs(text, maxChars = 350) {
     if (!text) return [];
-
-    // 1. Force breaks before logical markers (Statements/Options)
     let processed = text.replace(/(Pair [IVX\d]+ is (?:in)?correct:?|Statement \d+ is (?:in)?correct:?|Option [a-d] is (?:in)?correct:?)/gi, '||LOGIC_SPLIT||$1');
-
-    // 2. Force breaks before Definition Headers (e.g. "Pardon:")
     processed = processed.replace(/\b([A-Z][a-z]+:)/g, '||LOGIC_SPLIT||$1');
-
     let rawSegments = processed.split('||LOGIC_SPLIT||');
     let finalParagraphs = [];
 
@@ -151,7 +139,6 @@ function smartBreakParagraphs(text, maxChars = 350) {
         let result = [];
         let buffer = "";
         let openParenCount = 0;
-
         for (let i = 0; i < tokens.length; i++) {
             let part = tokens[i];
             buffer += part;
@@ -171,13 +158,11 @@ function smartBreakParagraphs(text, maxChars = 350) {
     rawSegments.forEach(segment => {
         segment = segment.trim();
         if (!segment) return;
-
         if (segment.length < maxChars) {
             finalParagraphs.push(segment);
         } else {
             let sentences = splitSentencesSafe(segment);
             let currentChunk = "";
-
             sentences.forEach(sentence => {
                 if ((currentChunk + sentence).length > maxChars) {
                     if (currentChunk.trim()) finalParagraphs.push(currentChunk.trim());
@@ -189,7 +174,6 @@ function smartBreakParagraphs(text, maxChars = 350) {
             if (currentChunk.trim()) finalParagraphs.push(currentChunk.trim());
         }
     });
-
     return finalParagraphs;
 }
 
@@ -197,6 +181,60 @@ function processTextSmartly(text) {
     if (!text) return "";
     const paragraphs = smartBreakParagraphs(text);
     return paragraphs.map(p => `<p>${smartHighlight(p)}</p>`).join('');
+}
+
+// --- SMART QUESTION FORMATTER (NEW) ---
+function formatQuestionText(text) {
+    if (!text) return "";
+    let formatted = text;
+
+    // 1. Assertion / Reason Splitting
+    // Adds a break and bolding for 'Assertion (A):' and 'Reason (R):'
+    formatted = formatted.replace(/(Assertion\s*\(?A\)?\s*[:.-])\s*/gi, '<br><strong class="q-label text-primary">$1</strong> ');
+    formatted = formatted.replace(/(Reason\s*\(?R\)?\s*[:.-])\s*/gi, '<br><strong class="q-label text-primary">$1</strong> ');
+
+    // 2. Statement Splitting
+    formatted = formatted.replace(/(Statement\s*[IVX1-9]+\s*[:.-])\s*/gi, '<br><strong class="q-label">$1</strong> ');
+
+    // 3. Match The Following / List Detection
+    // Detects "List-I" and "List-II" and tries to create a Grid Table
+    if (/(List\s*[-_]?\s*I|Column\s*[-_]?\s*I)/i.test(formatted) && /(List\s*[-_]?\s*II|Column\s*[-_]?\s*II)/i.test(formatted)) {
+        
+        // Try to identify items like "A. Item   1. Match" or "A- Item   1- Match"
+        // This regex looks for [A-D] followed by content, then [1-4] followed by content
+        // It's a heuristic to catch standard match formats embedded in text
+        const matchRegex = /([A-D])[\.\-]\s*(.*?)\s+([1-4])[\.\-]\s*(.*?)(?=(?:[A-D][\.\-]|$))/g;
+        
+        // Temporary placeholder to avoid destroying the text if regex fails
+        let tableRows = "";
+        let hasMatch = false;
+        
+        let matchBlock = formatted.replace(matchRegex, (match, p1, item1, p2, item2) => {
+            hasMatch = true;
+            return `<div class="match-row"><div class="match-col"><strong>${p1}.</strong> ${item1}</div><div class="match-col"><strong>${p2}.</strong> ${item2}</div></div>`;
+        });
+
+        if (hasMatch) {
+            // Wrap the matches in a container
+            // We use a specific marker to identify where the table started if possible, 
+            // but since we replaced globally, we just wrap the result in a clean div if it looks like a list.
+            formatted = matchBlock;
+            // Add a header wrapper if we can find the List headers
+            formatted = formatted.replace(/(List\s*[-_]?\s*I.*List\s*[-_]?\s*II)/i, '<div class="match-headers">$1</div><div class="match-grid">');
+            formatted += '</div>'; // Close grid
+            
+            // Cleanup: The regex might leave the closing div dangling or misplaced, 
+            // so a cleaner approach for the grid is to just apply the class to the rows we built.
+            // Let's refine: Just replace the rows and ensure they display block.
+            // The CSS .match-row { display: grid; grid-template-columns: 1fr 1fr; } will handle it.
+        }
+    }
+
+    // 4. Numbered Points (1. 2. 3.) on new lines (if not part of the match table above)
+    // We only split if it looks like a start of a line (or after punctuation)
+    formatted = formatted.replace(/([.;:])\s+(\(?\d+\.\s)/g, '$1<br>$2');
+
+    return formatted;
 }
 
 function openExplanationInTab(fullExplanation, qNum) {
@@ -251,7 +289,6 @@ function openExplanationInTab(fullExplanation, qNum) {
                     background: var(--bg-color); 
                     color: var(--text-color);      
                     font-family: 'Segoe UI', system-ui, sans-serif; 
-                    /* DEFAULT MOBILE LAYOUT (Portrait) */
                     padding: 0; 
                     margin: 0;
                     line-height: 1.6; 
@@ -259,15 +296,28 @@ function openExplanationInTab(fullExplanation, qNum) {
                 }
 
                 .container { 
-                    /* Full width on mobile portrait */
-                    width: 100%; 
-                    max-width: 100%;
+                    /* UPDATED WIDTH TO 94% AS REQUESTED */
+                    width: 94%; 
+                    max-width: 94%; /* Ensures it stays wide */
                     min-height: 100vh;
-                    margin: 0; 
+                    margin: 0 auto; 
                     background: var(--card-bg);
                     padding: 25px 20px;       
                     border-radius: 0;
                     box-shadow: none;
+                }
+                
+                /* Desktop/Landscape Enhancement */
+                @media screen and (min-width: 768px) {
+                    .container {
+                        /* Keep 94% but add margin top/bottom and rounded corners for aesthetics */
+                        width: 94%;
+                        margin: 20px auto;
+                        padding: 40px;
+                        border-radius: 12px;
+                        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                        min-height: auto;
+                    }
                 }
 
                 .header-row {
@@ -293,7 +343,7 @@ function openExplanationInTab(fullExplanation, qNum) {
 
                 p { 
                     margin-bottom: 15px; 
-                    font-size: 1.05rem; /* Readable Mobile Size */
+                    font-size: 1.05rem; 
                     text-align: left; 
                 }
                 
@@ -336,25 +386,6 @@ function openExplanationInTab(fullExplanation, qNum) {
                     cursor: pointer;
                     font-size: 1rem;
                     font-weight: 600;
-                }
-                
-                /* --- LANDSCAPE / DESKTOP ENHANCEMENTS --- */
-                @media screen and (min-width: 768px), screen and (orientation: landscape) and (max-height: 500px) {
-                    body {
-                        padding: 20px;
-                    }
-                    .container {
-                        /* Floating Card Look for Larger Screens */
-                        width: 94%; 
-                        max-width: 880px;
-                        margin: 0 auto;
-                        padding: 40px;
-                        border-radius: 12px;
-                        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-                        min-height: auto;
-                    }
-                    h1 { font-size: 1.6rem; }
-                    p { font-size: 1.15rem; line-height: 1.8; }
                 }
             </style>
         </head>
@@ -401,11 +432,13 @@ function loadQuestion() {
 
   document.getElementById("questionCounter").innerText = `Q${qIndex + 1} / ${questions.length}`;
   
-  let qHtml = (q.flag ? "🚩 " : "") + q.q;
+  // --- USE NEW FORMATTER HERE ---
+  let qHtml = (q.flag ? "🚩 " : "") + formatQuestionText(q.q);
+  // ------------------------------
+  
   if(q.source) qHtml += `<span class="source-tag">Source: ${q.source}</span>`;
   document.getElementById("question").innerHTML = qHtml;
 
-  // --- Dynamic Option Generation ---
   const optionsContainer = document.getElementById("optionsContainer");
   optionsContainer.innerHTML = "";
 
@@ -432,7 +465,6 @@ function loadQuestion() {
       
       optionsContainer.appendChild(btn);
   });
-  // ----------------------------------
 
   const fb = document.getElementById("feedback");
   const fbStatus = document.getElementById("feedbackStatus");
