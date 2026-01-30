@@ -24,7 +24,7 @@ body {
 /* ... Layout ... */
 .app-container { 
   display: grid; 
-  grid-template-columns: 1fr 240px; /* Sidebar stays on RIGHT */
+  grid-template-columns: 1fr 240px; 
   gap: 20px; 
   max-width: 1200px; 
   margin: 30px auto; 
@@ -117,7 +117,16 @@ h1, h2, h3, h4 { margin-top: 0; }
   margin-bottom: 25px; 
   line-height: 1.4; 
   font-weight: 500;
+  /* Scrollbar if question is too long */
+  max-height: 60vh; 
+  overflow-y: auto;
+  padding-right: 5px;
 }
+
+/* Custom Scrollbar styling */
+#question::-webkit-scrollbar, .sidebar-list::-webkit-scrollbar { width: 6px; }
+#question::-webkit-scrollbar-track, .sidebar-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+#question::-webkit-scrollbar-thumb, .sidebar-list::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
 
 .source-tag {
     display: block;
@@ -268,19 +277,16 @@ h1, h2, h3, h4 { margin-top: 0; }
   padding: 0;
 }
 
+/* Explicit Scroll for Sidebar Boxes */
 .sidebar-list { 
   display: grid; 
   grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); 
   gap: 8px;
-  max-height: 210px; 
+  max-height: 200px; /* Fixed height to force scroll if many items */
   overflow-y: auto; 
   padding-right: 4px; 
   transition: max-height 0.3s ease;
 }
-
-.sidebar-list::-webkit-scrollbar { width: 4px; }
-.sidebar-list::-webkit-scrollbar-track { background: transparent; }
-.sidebar-list::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
 
 .flag-pill { 
   background: #334155; 
@@ -347,7 +353,7 @@ input[type="file"] { display: none; }
    MEDIA QUERIES
    ========================================= */
 
-/* Mobile Portrait: Stack everything */
+/* Mobile Portrait: Stack everything & MAKE HOME PAGE BIGGER */
 @media (max-width: 768px) and (orientation: portrait) {
   .app-container { 
     grid-template-columns: 1fr; 
@@ -360,9 +366,34 @@ input[type="file"] { display: none; }
     width: 100%; 
   }
   .sidebar-list { max-height: 150px; }
+
+  /* HOME PAGE ENLARGEMENT FOR PORTRAIT */
+  .action-grid {
+      grid-template-columns: 1fr; /* Stack cards */
+      gap: 25px;
+  }
+  .action-card {
+      padding: 35px 25px; /* Bigger padding = Bigger look */
+  }
+  .action-card h3 {
+      font-size: 1.4rem; /* Larger headings */
+      margin-bottom: 20px;
+  }
+  .btn-full {
+      padding: 16px; /* Chunky buttons */
+      font-size: 1.1rem;
+  }
+  .custom-file-upload {
+      padding: 15px;
+      font-size: 1rem;
+  }
+  .hero-title {
+      font-size: 2.2rem; /* Big Title */
+      margin-bottom: 30px;
+  }
 }
 
-/* Mobile Landscape: KEEP Sidebar on Right, but Compact Everything */
+/* Mobile Landscape: Sidebar Right, Compact View */
 @media screen and (orientation: landscape) and (max-height: 600px) {
   body { padding-bottom: 10px; }
 
@@ -371,18 +402,15 @@ input[type="file"] { display: none; }
     margin: 5px auto;
     padding: 0 10px;
     gap: 12px;
-    /* Maintain Sidebar on Right, but make it smaller (200px) */
-    grid-template-columns: 1fr 200px;
+    grid-template-columns: 1fr 200px; /* Sidebar stays Right */
   }
 
   .card { padding: 10px 15px; margin-bottom: 0; }
 
-  /* Header Shrink */
   .hero-title { font-size: 1.2rem; margin-bottom: 5px; }
   .quiz-header { margin-bottom: 5px; }
   .badge, .timer-pill { font-size: 11px; padding: 2px 6px; }
 
-  /* Question Area Scroll */
   #question { 
     font-size: 1.1rem; 
     margin-bottom: 8px;
@@ -391,15 +419,12 @@ input[type="file"] { display: none; }
     padding-right: 5px;
   }
 
-  /* Compact Options */
   .options { gap: 6px; }
   .option-btn { padding: 6px 10px; font-size: 13px; }
 
-  /* Compact Controls */
   .controls { margin-top: 10px; padding-top: 8px; }
   .btn { padding: 6px 12px; font-size: 12px; }
 
-  /* Compact Sidebar */
   .sidebar {
     padding: 10px;
     gap: 10px;

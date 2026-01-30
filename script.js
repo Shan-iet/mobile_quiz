@@ -277,7 +277,7 @@ function openExplanationInTab(fullExplanation, qNum) {
                 }
 
                 .container { 
-                    max-width: 720px; /* BEAUTIFICATION: Reduced from 850px for better readability */
+                    max-width: 850px; 
                     margin: 0 auto; 
                     background: var(--card-bg);
                     padding: 50px;       
@@ -340,9 +340,9 @@ function openExplanationInTab(fullExplanation, qNum) {
                         padding: 0; 
                     }
                     .container { 
-                        /* Make it narrower than 100% so it floats nicely in the center */
-                        width: 90%; 
-                        max-width: 720px;
+                        /* INCREASED WIDTH HERE */
+                        width: 94%; 
+                        max-width: 880px;
                         padding: 15px 25px; 
                         margin: 0 auto; 
                         border-radius: 0;
